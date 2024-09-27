@@ -1,6 +1,10 @@
 #include <iostream>
 #include <string.h>
 #include <iomanip>
+#include <cctype>
+
+
+#define MAX 100
 using namespace std;
 class emp {
 private:
@@ -31,6 +35,40 @@ public:
 
     friend void insertboss(emp &e);
     friend void displayboss(emp &e);
+    friend void insertGroupBoss(emp);
+};
+
+class Derived :public emp
+{
+    public:
+    void insertGroupBoss(emp e[]) {
+    char input[MAX];
+    int noOfEmployees[MAX];
+    int employeeCount = 0; // Keep track of the number of employees
+
+    cout << "\nEnter the number of employees in a group: ";
+    cin.getline(input, MAX);
+
+ 
+
+    for (int j = 0; input[j] != '\0'; j++) {   
+        if (isdigit(input[j])) {
+            noOfEmployees[employeeCount++] = input[j] - '0'; // Store the digit and increment count
+        }
+    }
+
+    // Correct output loop
+    cout << "\nThe employees in the group are: ";
+    for (int k = 0; k < employeeCount; k++) {
+        cout << noOfEmployees[k] << " "; // Use k without incrementing here
+    }
+    cout << endl;
+    
+}
+
+
+
+
 };
 
 void insertboss(emp &e) {
@@ -54,6 +92,9 @@ void displayboss(emp &e) {
 
 int main() {
     emp e[10];
+    Derived d1;
+    d1.insertGroupBoss(e);
+
     int term = 2, level, choice, n, pass;
 
     cout << "\nEnter the choice: " << endl;
@@ -77,7 +118,7 @@ int main() {
 		switch (pass) {
 		    case 906472:
 			cout << "\nHello master Yash" << endl;
-			cout << "\nEnter the choice (1 for insert, 2 for display): ";
+			cout << "\nEnter the choice (1 for insert, 2 for display,3 for assigning group task): ";
 			cin >> choice;
 			cout << "\nEnter the employee number: ";
 			cin >> n;
@@ -86,6 +127,8 @@ int main() {
 			    insertboss(e[n]);
 			else if (choice == 2)
 			    displayboss(e[n]);
+            else if(choice ==3)
+                insertGroupBoss(e);
 			break;
 
 		    case 903456:
@@ -127,6 +170,7 @@ int main() {
 	cin >> term;
 	cout << endl;
     }
+        
 
     return 0;
 }
