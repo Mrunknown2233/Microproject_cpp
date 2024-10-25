@@ -1,15 +1,17 @@
 #include <iostream>
-#include <string.h>
+#include <string>
 #include <iomanip>
 #include <cstdlib>
 #include <cctype>
+#include <fstream> 
+#include <regex>   
 #define MAX 100
 
 using namespace std;
 
 class Employee {
 protected:
-    long int dl;
+    string dl; // Change to string for date
     char project[200], message[200];
     int status;
 
@@ -18,7 +20,7 @@ public:
         strcpy(project, "not_available");
         strcpy(message, "not_available");
         status = 0;
-        dl = 0;
+        dl = "not_available";
     }
 
     virtual void update() {
@@ -30,17 +32,17 @@ public:
     virtual void display() {
         cout << "\nThe given project: " << project;
         cout << "\nThe status of the project: " << status << "%";
-        cout << "\nThe deadline: " << dl;
+        cout << "\nThe deadline: " << dl; // Display the string date
         cout << "\nThe message given by boss: " << message;
     }
 
-    void assignProject(const char* projName, long int deadline, const char* msg) {
+    void assignProject(const char* projName, const string& deadline, const char* msg) {
         strcpy(project, projName);
-        dl = deadline;
+        dl = deadline; // Store date as string
         strcpy(message, msg);
     }
 
-    friend void insertboss(Employee &e);
+    friend void insertboss(Employee &e, int employeeIndex);
     friend void displayboss(Employee &e);
     friend void assignGroupProject(Employee e[], int employeeCount);
 };
@@ -50,34 +52,66 @@ public:
     void assignGroupProject(Employee e[], int employeeCount);
 };
 
-void insertboss(Employee &e) {
+void saveToCSV(const char* projectName, const string& deadline, const char* message, int employeeIndex) {
+    std::ofstream file;
+    file.open("tasks.csv", std::ios::app); // Open file in append mode
+    if (file.is_open()) {
+        file << employeeIndex << "," << projectName << "," << deadline << "," << message << std::endl;
+        cout << "\nInserted";
+        file.close();
+    } else {
+        std::cout << "Error opening file." << std::endl;
+    }
+}
+
+// Simple date validation function
+bool isValidDate(const string& date) {
+    // Regex for validating date in YYYY-MM-DD format
+    regex dateRegex(R"(\d{4}-\d{2}-\d{2})");
+    return regex_match(date, dateRegex);
+}
+
+void insertboss(Employee &e, int employeeIndex) {
     cin.ignore();
     cout << "\nEnter the project for the employee: ";
     cin.getline(e.project, 200);
     cout << "\nProject inserted";
-    cout << "\nEnter the deadline: ";
-    cin >> e.dl;
-    cin.ignore();
-    cout << "\nThe deadline inserted" << endl;
+    
+    string deadline;
+    while (true) {
+        cout << "\nEnter the deadline (YYYY-MM-DD): ";
+        cin >> deadline;
+        if (isValidDate(deadline)) {
+            e.dl = deadline; // Set the deadline
+            cout << "\nThe deadline inserted" << endl;
+            break;
+        } else {
+            cout << "Invalid date format. Please use YYYY-MM-DD." << endl;
+        }
+    }
+    
+    cin.ignore(); // Clear input buffer
     cout << "\nEnter the message: ";
     cin.getline(e.message, 200);
+
+    // Save to CSV
+    saveToCSV(e.project, e.dl, e.message, employeeIndex);
 }
 
 void displayboss(Employee &e) {
     cout << "\nThe project: " << e.project << endl;
-    cout << "\nThe deadline: " << e.dl << endl;
+    cout << "\nThe deadline: " << e.dl << endl; // Display the string date
     cout << "\nThe status: " << e.status << endl;
 }
 
 void Boss::assignGroupProject(Employee e[], int employeeCount) {
     char projectName[200], message[200];
-    long int deadline;
+    string deadline;
     int noOfEmployees[MAX], actualCount = 0;
 
     cin.ignore();
     cout << "\nEnter the employee numbers (type 'done' to finish): ";
     
-    // Using a while loop to collect employee numbers
     while (true) {
         char input[10];
         cin >> input;
@@ -94,21 +128,30 @@ void Boss::assignGroupProject(Employee e[], int employeeCount) {
         }
     }
 
-    // Get project details
     cout << "\nEnter the project name: ";
     cin.ignore(); // To clear the buffer
     cin.getline(projectName, 200);
-    cout << "\nEnter the deadline: ";
-    cin >> deadline;
-    cin.ignore(); // To ignore the newline character
+    
+    // Get and validate the deadline
+    while (true) {
+        cout << "\nEnter the deadline (YYYY-MM-DD): ";
+        cin >> deadline;
+        if (isValidDate(deadline)) {
+            break;
+        } else {
+            cout << "Invalid date format. Please use YYYY-MM-DD." << endl;
+        }
+    }
+    
     cout << "\nEnter the message: ";
+    cin.ignore(); // To clear the buffer
     cin.getline(message, 200);
 
-    // Assign the project to each employee
     for (int i = 0; i < actualCount; i++) {
         int empIndex = noOfEmployees[i];
         e[empIndex].assignProject(projectName, deadline, message);
         cout << "\nProject assigned to employee " << empIndex << ": " << projectName;
+        saveToCSV(projectName, deadline, message, empIndex); // Save to CSV
     }
 }
 
@@ -125,7 +168,7 @@ int main() {
         cout << "1. For insert as boss" << endl;
         cout << "2. For insert as employee" << endl;
         cout << "1. For update" << endl;
-        cout << "3. For assigning group task" << endl; // Added option
+        cout << "3. For assigning group task" << endl;
         cout << "0. For terminate" << endl;
         cout << "\nEnter the level for boss and employee: ";
         cin >> level;
@@ -144,7 +187,7 @@ int main() {
                         cin >> n;
 
                         if (choice == 1)
-                            insertboss(e[n]);
+                            insertboss(e[n], n);
                         else if (choice == 2)
                             displayboss(e[n]);
                         else if (choice == 3)
@@ -159,7 +202,7 @@ int main() {
                         cin >> n;
 
                         if (choice == 1)
-                            insertboss(e[n]);
+                            insertboss(e[n], n);
                         else if (choice == 2)
                             displayboss(e[n]);
                         break;
