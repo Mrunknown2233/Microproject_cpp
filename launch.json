@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C++ Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}", // Path to the compiled executable
+            "args": [], // Command-line arguments can be added here
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}", // Current working directory
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb" // Change if necessary
+        }
+    ]
+}
