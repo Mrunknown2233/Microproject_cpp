@@ -1,10 +1,8 @@
 #include <iostream>
 #include <string>
-#include <iomanip>
-#include <cstdlib>
-#include <cctype>
-#include <fstream> 
-#include <regex>   
+#include <cstdlib>  // for atoi
+#include <cstring>  // for c_str()
+#include <fstream>
 #define MAX 100
 
 using namespace std;
@@ -53,22 +51,52 @@ public:
 };
 
 void saveToCSV(const char* projectName, const string& deadline, const char* message, int employeeIndex) {
-    std::ofstream file;
-    file.open("tasks.csv", std::ios::app); // Open file in append mode
+    ofstream file;
+    file.open("tasks.csv", ios::app); // Open file in append mode
     if (file.is_open()) {
-        file << employeeIndex << "," << projectName << "," << deadline << "," << message << std::endl;
+        file << employeeIndex << "," << projectName << "," << deadline << "," << message << endl;
         cout << "\nInserted";
         file.close();
     } else {
-        std::cout << "Error opening file." << std::endl;
+        cout << "Error opening file." << endl;
     }
 }
 
-// Simple date validation function
+// Simple date validation function (using atoi instead of stoi)
 bool isValidDate(const string& date) {
-    // Regex for validating date in YYYY-MM-DD format
-    regex dateRegex(R"(\d{4}-\d{2}-\d{2})");
-    return regex_match(date, dateRegex);
+    if (date.size() != 10) return false; // Length check for YYYY-MM-DD
+
+    // Check the format YYYY-MM-DD
+    if (date[4] != '-' || date[7] != '-') return false;
+
+    // Check if the year, month, and day parts are digits
+    for (int i = 0; i < 10; i++) {
+        if (i != 4 && i != 7 && !isdigit(date[i])) {
+            return false;
+        }
+    }
+
+    // Use atoi instead of stoi
+    int year = atoi(date.substr(0, 4).c_str());  // Convert year to int
+    int month = atoi(date.substr(5, 2).c_str()); // Convert month to int
+    int day = atoi(date.substr(8, 2).c_str());   // Convert day to int
+
+    // Basic checks for month and day
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+
+    // Handle months with less than 31 days
+    if (month == 4 || month == 6 || month == 9 || month == 11) {
+        if (day > 30) return false;
+    }
+
+    // Handle February
+    if (month == 2) {
+        bool leapYear = (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+        if (day > (leapYear ? 29 : 28)) return false;
+    }
+
+    return true;
 }
 
 void insertboss(Employee &e, int employeeIndex) {
